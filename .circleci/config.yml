@@ -1,0 +1,30 @@
+version: 2.1
+
+jobs:
+  build-and-push:
+    docker:
+      - image: cimg/base:stable
+
+    steps:
+      - checkout
+
+      - setup_remote_docker:
+          version: 20.10.7
+
+      - run:
+          name: Build Docker image
+          command: |
+            docker info
+            docker build -t petespangler/canadianwealthassessment:$CIRCLE_SHA1 .
+
+      - run:
+          name: Push Docker image
+          command: |
+            echo "$DOCKERHUB_PASSWORD"  | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+            docker push petespangler/canadianwealthassessment:$CIRCLE_SHA1
+
+workflows:
+  version: 2
+  build-and-deploy:
+    jobs:
+      - build-and-push
